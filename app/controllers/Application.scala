@@ -18,6 +18,7 @@ import java.net.{URLEncoder, URLDecoder}
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
+import java.util.Random
 
 
 object Application extends Controller {
@@ -26,6 +27,8 @@ object Application extends Controller {
   val consumerSecret = config.getString("consumerSecret").getOrElse("")
   val accessToken = config.getString("accessToken").getOrElse("")
   val accessTokenSecret = config.getString("accessTokenSecret").getOrElse("")
+  val myScreenName = config.getString("screenName").getOrElse("")
+
   val key = ConsumerKey(consumerKey, consumerSecret)
   val twitterOAuth = OAuth(
     ServiceInfo(
@@ -36,6 +39,8 @@ object Application extends Controller {
     false)
   val token = RequestToken(accessToken, accessTokenSecret)
   val oAuthCalculator = OAuthCalculator(key, token)
+  val someDuration = Duration(10000, "millis")
+
 
   def index = Action {
     Redirect(routes.Application.timeline)
@@ -61,11 +66,17 @@ object Application extends Controller {
   }}
 
   def post = Action { implicit request => {
+    val comments = Array("hoge", "fuga", "piyo")
+    val rand = new Random(System.currentTimeMillis())
+    val randomIndex = rand.nextInt(comments.length)
     val form = Form("message" -> nonEmptyText)
-    val message = form.bindFromRequest.fold(
+    val formMessage = form.bindFromRequest.fold(
       errors => throw new IllegalArgumentException("cannot post message"),
       message => message
       )
+    val userData = getUsersShow(oAuthCalculator, myScreenName)
+    val postCount = (userData \ "statuses_count").toString.toInt
+    val message = if (postCount % 3 == 2) comments(randomIndex)+(postCount+1).toString else formMessage
     val userTimeline = postStatusUpdate(oAuthCalculator, message)
     Redirect(routes.Application.timeline)
   }}
@@ -73,8 +84,7 @@ object Application extends Controller {
   def getHomeTimeLine(oAuthCalculator: OAuthCalculator): Seq[JsValue] = {
     val url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
     val resultPromise = WS.url(url).sign(oAuthCalculator).get
-    val d = Duration(10000, "millis")
-    Await.result(resultPromise, d).json match {
+    Await.result(resultPromise, someDuration).json match {
       case JsArray(elem) => elem
       case _ => List.empty
     }
@@ -83,12 +93,17 @@ object Application extends Controller {
   def postStatusUpdate(oAuthCalculator: OAuthCalculator, message: String): JsValue = {
     val url = "https://api.twitter.com/1.1/statuses/update.json?status="+URLEncoder.encode(message, "UTF-8")
     val resultPromise = WS.url(url).sign(oAuthCalculator).post("")
-    val d = Duration(10000, "millis")
-    Await.result(resultPromise, d).json
+    Await.result(resultPromise, someDuration).json
+  }
+
+  def getUsersShow(oAuthCalculator: OAuthCalculator, screenName: String): JsValue = {
+    val url = "https://api.twitter.com/1.1/users/show.json?screen_name="+screenName
+    val resultPromise = WS.url(url).sign(oAuthCalculator).get
+    Await.result(resultPromise, someDuration).json
   }
 
   def diffTime(createdAt:Date, current:Date): String = {
-    val minuteUnit = 60 * 1000 // 
+    val minuteUnit = 60 * 1000
     val diffMin = (current.getTime - createdAt.getTime) / minuteUnit
     if (diffMin < 60){
       return diffMin.toString + " minutes"
