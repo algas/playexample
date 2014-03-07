@@ -15,6 +15,9 @@ import models.TweetModel
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.net.{URLEncoder, URLDecoder}
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 
 
 object Application extends Controller {
@@ -39,15 +42,19 @@ object Application extends Controller {
   }
 
   def timeline = Action { request => {
+    val dateBeforeFormatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy",Locale.ENGLISH)
+    val dateAfterFormatter = new SimpleDateFormat("yyyy-MM-dd",Locale.ENGLISH)
+    val currentTime = new Date()
     val timeLine = getHomeTimeLine(oAuthCalculator)
     val tweets = timeLine.map {
       tweet => {
         val name = (tweet \ "user" \ "name").toString.replaceAll("\"", "")
         val screenName = (tweet \ "user" \ "screen_name").toString.replaceAll("\"", "")
         val createdAt = (tweet \ "created_at").toString.replaceAll("\"", "")
+        var dateTime = diffTime(dateBeforeFormatter.parse(createdAt), currentTime)
         val text = (tweet \ "text").toString.replaceAll("\"", "")
         val imageUrl = (tweet \ "user" \ "profile_image_url").toString.replaceAll("\"", "")
-        TweetModel(text, createdAt, screenName, name, imageUrl)
+        TweetModel(text, dateTime, screenName, name, imageUrl)
       }
     } .toArray
     Ok(views.html.timeline("Obaka Twitter Client", tweets))
@@ -78,5 +85,17 @@ object Application extends Controller {
     val resultPromise = WS.url(url).sign(oAuthCalculator).post("")
     val d = Duration(10000, "millis")
     Await.result(resultPromise, d).json
+  }
+
+  def diffTime(createdAt:Date, current:Date): String = {
+    val minuteUnit = 60 * 1000 // 
+    val diffMin = (current.getTime - createdAt.getTime) / minuteUnit
+    if (diffMin < 60){
+      return diffMin.toString + " minutes"
+    } else if (diffMin < 60 * 24) {
+      return (diffMin / 60) + " hours"
+    } else {
+      return (diffMin / (60*24)) + " days"
+    }
   }
 }
