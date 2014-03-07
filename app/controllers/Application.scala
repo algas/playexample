@@ -28,6 +28,7 @@ object Application extends Controller {
   val accessToken = config.getString("accessToken").getOrElse("")
   val accessTokenSecret = config.getString("accessTokenSecret").getOrElse("")
   val myScreenName = config.getString("screenName").getOrElse("")
+  val rand = new Random(System.currentTimeMillis())
 
   val key = ConsumerKey(consumerKey, consumerSecret)
   val twitterOAuth = OAuth(
@@ -67,7 +68,6 @@ object Application extends Controller {
 
   def post = Action { implicit request => {
     val comments = Array("hoge", "fuga", "piyo")
-    val rand = new Random(System.currentTimeMillis())
     val randomIndex = rand.nextInt(comments.length)
     val form = Form("message" -> nonEmptyText)
     val formMessage = form.bindFromRequest.fold(
