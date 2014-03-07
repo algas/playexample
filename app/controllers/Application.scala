@@ -46,7 +46,8 @@ object Application extends Controller {
         val screenName = (tweet \ "user" \ "screen_name").toString.replaceAll("\"", "")
         val createdAt = (tweet \ "created_at").toString.replaceAll("\"", "")
         val text = (tweet \ "text").toString.replaceAll("\"", "")
-        TweetModel(text, createdAt, screenName, name)
+        val imageUrl = (tweet \ "user" \ "profile_image_url").toString.replaceAll("\"", "")
+        TweetModel(text, createdAt, screenName, name, imageUrl)
       }
     } .toArray
     Ok(views.html.timeline("Obaka Twitter Client", tweets))
