@@ -106,11 +106,11 @@ object Application extends Controller {
     val minuteUnit = 60 * 1000
     val diffMin = (current.getTime - createdAt.getTime) / minuteUnit
     if (diffMin < 60){
-      return diffMin.toString + " minutes"
+      diffMin.toString + " minutes"
     } else if (diffMin < 60 * 24) {
-      return (diffMin / 60) + " hours"
+      (diffMin / 60) + " hours"
     } else {
-      return (diffMin / (60*24)) + " days"
+      (diffMin / (60*24)) + " days"
     }
   }
 }
