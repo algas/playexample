@@ -26,14 +26,7 @@ sbt.msi
 
 ## Mac OS X 
 
-Mac では主に HomeBrew を使ってインストールを行います。
-
-## HomeBrew のインストール
-
-1. ターミナルから以下のコマンドで HomeBrew をインストールする。
-    ```
-    ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
-    ```
+Mac では sbt-extras を使ってインストールを行います。
 
 ### JDK のインストール
 
@@ -41,16 +34,18 @@ Mac では主に HomeBrew を使ってインストールを行います。
 http://www.oracle.com/technetwork/java/javase/downloads/index.html
 2. JDK　の下の "Download" をクリックする。  
 3. "Accept License Agreement" にチェックを入れて、Mac OS X x64 の .dmg をダウンロードする。
-4. ダウンロードしてきた .dmg をクリック(マウント)して表示される .pkg をダブルクリックして jdk　をインストールする。
+4. ダウンロードしてきた .dmg をクリック(マウント)して表示される .pkg をダブルクリックして jdk をインストールする。
 
 ### SBT のインストール
 
 1. ターミナルから以下のコマンドを実行する。  
-    ```
-    brew update && brew install sbt
-    ```
+```
+curl -s https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt > ~/bin/sbt && chmod 0755 ~/bin/sbt
+```
 
 ## 注意点
 
-* 環境変数の設定
+* 環境変数の設定  
 JAVA_HOME, SBT_HOME, PATH
+* 参考資料  
+http://scalajp.github.io/sbt-getting-started-guide-ja/setup/
